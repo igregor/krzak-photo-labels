@@ -1,18 +1,10 @@
 <script lang="ts">
-	import { spring } from 'svelte/motion';
+	// Types
+	// import type { CssClasses } from '../../index.js';
+
 	import { read, utils } from 'xlsx';
 
 	export let itemsFromFile;
-	let count = 0;
-
-	const displayed_count = spring();
-	$: displayed_count.set(count);
-	$: offset = modulo($displayed_count, 1);
-
-	function modulo(n: number, m: number) {
-		// handle negative numbers
-		return ((n % m) + m) % m;
-	}
 
 	const readExcel = async (file: any) => {
 		console.log(file);
@@ -33,99 +25,89 @@
 			itemsFromFile = data;
 		};
 	};
+
+	// Props
+	/**
+	 * Bind FileList to the file input.
+	 * @type {FileList}
+	 */
+	// export let files: FileList | undefined = undefined;
+	/**
+	 * File input reference.
+	 */
+	// export let fileInput: HTMLInputElement | undefined = undefined;
+	/**
+	 * Required. Set a unique name for the file input.
+	 * @type {string}
+	 */
+	export let name: string;
+	/** Provide classes to set the border styles. */
+	export let border: CssClasses = 'border-2 border-dashed';
+	/** Provide classes to set the padding styles. */
+	export let padding: CssClasses = 'p-4 py-8';
+	/** Provide classes to set the box radius styles. */
+	export let rounded: CssClasses = 'rounded-container-token';
+
+	// Props (regions)
+	/** Provide arbitrary styles for the UI region. */
+	export let regionInterface: CssClasses = '';
+	/** Provide arbitrary styles for the UI text region. */
+	export let regionInterfaceText: CssClasses = '';
+
+	// Props (slots)
+	/** Provide arbitrary styles for lead slot container. */
+	export let slotLead: CssClasses = 'mb-4';
+	/** Provide arbitrary styles for message slot container. */
+	export let slotMessage: CssClasses = '';
+	/** Provide arbitrary styles for meta text slot container. */
+	export let slotMeta: CssClasses = 'opacity-75';
+
+	const cBase = 'textarea relative flex justify-center items-center';
+	const cInput =
+		'w-full absolute top-0 left-0 right-0 bottom-0 z-[1] opacity-0 disabled:!opacity-0 cursor-pointer';
+	const cInterface = 'flex justify-center items-center text-center';
+
+	// Reactive
+	$: classesBase = `${cBase} ${border} ${padding} ${rounded} ${$$props.class ?? ''}`;
+	$: classesInput = `${cInput}`;
+	$: classesInterface = `${cInterface}`;
+
+	// Pruned RestProps
+	function prunedRestProps() {
+		delete $$restProps.class;
+		return $$restProps;
+	}
 </script>
 
-<div class="counter">
+<div
+	class="dropzone {classesBase}"
+	class:opacity-50={$$restProps.disabled}
+	data-testid="file-dropzone"
+>
+	<!-- Input: File (hidden) -->
+	<!-- NOTE: keep `bind:files` here, unlike FileButton -->
 	<input
 		type="file"
+		{name}
+		class="dropzone-input {classesInput}"
 		on:change={(e) => {
+			// e.preventDefault();
+
 			const file = e.target.files[0];
 			readExcel(file);
 		}}
 	/>
-	<button on:click={() => (count -= 1)} aria-label="Decrease the counter by one">
-		<svg aria-hidden="true" viewBox="0 0 1 1">
-			<path d="M0,0.5 L1,0.5" />
-		</svg>
-	</button>
-
-	<div class="counter-viewport">
-		<div class="counter-digits" style="transform: translate(0, {100 * offset}%)">
-			<strong class="hidden" aria-hidden="true">{Math.floor($displayed_count + 1)}</strong>
-			<strong>{Math.floor($displayed_count)}</strong>
+	<!-- Interface -->
+	<div class="dropzone-interface {classesInterface} {regionInterface}">
+		<div class="dropzone-interface-text {regionInterfaceText}">
+			<!-- Lead -->
+			<!-- {#if $$slots.lead}<div class="dropzone-lead {slotLead}"><slot name="lead" /></div>{/if} -->
+			<!-- Message -->
+			<div class="dropzone-message {slotMessage}">
+				<slot name="message"><strong>Upload a file</strong> or drag and drop</slot>
+			</div>
+			<!-- Meta Text -->
+			<!-- {#if $$slots.meta}<small class="dropzone-meta {slotMeta}"><slot name="meta" /></small>{/if} -->
 		</div>
 	</div>
-
-	<button on:click={() => (count += 1)} aria-label="Increase the counter by one">
-		<svg aria-hidden="true" viewBox="0 0 1 1">
-			<path d="M0,0.5 L1,0.5 M0.5,0 L0.5,1" />
-		</svg>
-	</button>
 </div>
-
-<style>
-	.counter {
-		display: flex;
-		border-top: 1px solid rgba(0, 0, 0, 0.1);
-		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-		margin: 1rem 0;
-	}
-
-	.counter button {
-		width: 2em;
-		padding: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 0;
-		background-color: transparent;
-		touch-action: manipulation;
-		font-size: 2rem;
-	}
-
-	.counter button:hover {
-		background-color: var(--color-bg-1);
-	}
-
-	svg {
-		width: 25%;
-		height: 25%;
-	}
-
-	path {
-		vector-effect: non-scaling-stroke;
-		stroke-width: 2px;
-		stroke: #444;
-	}
-
-	.counter-viewport {
-		width: 8em;
-		height: 4em;
-		overflow: hidden;
-		text-align: center;
-		position: relative;
-	}
-
-	.counter-viewport strong {
-		position: absolute;
-		display: flex;
-		width: 100%;
-		height: 100%;
-		font-weight: 400;
-		color: var(--color-theme-1);
-		font-size: 4rem;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.counter-digits {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-	}
-
-	.hidden {
-		top: -100%;
-		user-select: none;
-	}
-</style>
