@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { spring } from 'svelte/motion';
+	import { read, utils } from 'xlsx';
 
+	export let itemsFromFile;
 	let count = 0;
 
 	const displayed_count = spring();
@@ -11,9 +13,36 @@
 		// handle negative numbers
 		return ((n % m) + m) % m;
 	}
+
+	const readExcel = async (file: any) => {
+		console.log(file);
+		const fileReader = await new FileReader();
+		fileReader.readAsArrayBuffer(file);
+
+		fileReader.onload = (e: any) => {
+			const bufferArray = e?.target.result;
+			const wb = read(bufferArray, { type: 'buffer' });
+			const wsname = wb.SheetNames[0];
+			const ws = wb.Sheets[wsname];
+
+			const data = utils.sheet_to_json(ws, { raw: true });
+			const fileName = file.name.split('.')[0];
+
+			console.log(data);
+
+			itemsFromFile = data;
+		};
+	};
 </script>
 
 <div class="counter">
+	<input
+		type="file"
+		on:change={(e) => {
+			const file = e.target.files[0];
+			readExcel(file);
+		}}
+	/>
 	<button on:click={() => (count -= 1)} aria-label="Decrease the counter by one">
 		<svg aria-hidden="true" viewBox="0 0 1 1">
 			<path d="M0,0.5 L1,0.5" />
