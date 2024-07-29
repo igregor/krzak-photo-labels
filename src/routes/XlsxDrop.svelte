@@ -5,6 +5,19 @@
 	export let customText;
 	export let isDraggingOver: boolean = false;
 
+	let files;
+
+	$: if (files) {
+		// Note that `files` is of type `FileList`, not an Array:
+		// https://developer.mozilla.org/en-US/docs/Web/API/FileList
+		console.log(files);
+
+		for (const file of files) {
+			console.log(`${file.name}: ${file.size} bytes`);
+		}
+		readExcel(files[0]);
+	}
+
 	const readExcel = async (file: any) => {
 		console.log(file);
 		const fileReader = await new FileReader();
@@ -76,17 +89,15 @@
 		</div>
 		<input
 			class="absolute bottom-0 left-0 top-0 right-0 opacity-0"
-			type="file"
 			on:dragover={() => {
 				isDraggingOver = true;
 			}}
 			on:dragleave={() => {
 				isDraggingOver = false;
 			}}
-			on:change={(e) => {
-				const file = e.target.files[0];
-				readExcel(file);
-			}}
+			type="file"
+			accept="xlsx"
+			bind:files
 		/>
 	</div>
 </div>
