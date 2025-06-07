@@ -18,6 +18,8 @@
 	const chunkSize = 21;
 	let pages: FileData[][] = [];
 
+	console.log(itemsFromFile);
+
 	$: {
 		pages = [];
 
